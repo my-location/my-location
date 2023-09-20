@@ -1,0 +1,72 @@
+<!doctype html><html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+   <meta charset="utf-8">
+   <title>Show your Location using Google Maps</title>
+   <link rel="canonical" href="https://whatmylocation.com/" />
+   <style>
+     .mapholder{
+       width:100%;
+       max-width:800px;
+       height: 700px;
+     }
+   </style>
+  </head>
+  <body>
+    <div class="mapholder" id="mapholder">
+    </div>
+    <script src="https://maps.google.com/maps/api/js?key={{API}}&callback=getLocation&libraries=places&v=weekly" async></script>
+    <script>
+      var targetElement = document.getElementById('mapholder');
+      function getLocation(){
+        navigator.geolocation.getCurrentPosition(showPosition,showError,{maximumAge: 600000, enableHighAccuracy: true,timeout : 50000});
+      }
+      function showError(error){
+        var errCont = '';
+        switch(error.code)
+          {
+          case error.PERMISSION_DENIED:
+            errCont = "The permission is denied, please allow location permission and refresh!"
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errCont = "Location information is not available in your device!"
+            break;
+          case error.TIMEOUT:
+            errCont = "The request has timed out, try again!"
+            break;
+          case error.UNKNOWN_ERROR:
+            errCont = "An unknown error, please try again!"
+            break;
+          }
+          targetElement.style.height = 'auto';
+          targetElement.innerHTML = '<div class="p-3 m-1 wairn-values" style="height:auto">'+errCont+'<br /><a href="./" class="btn btn-warning">Refresh</a><br /><br /></div>';
+      }
+      function showPosition(position){
+        var lat=position.coords.latitude;
+        var lng=position.coords.longitude;
+        var accuracy=parseInt(position.coords.accuracy);
+
+        showinGoogleMaps(lat, lng);
+      }
+      function showinGoogleMaps(lat, lon){
+        var mapholder=document.getElementById('mapholder');
+        mapholder.style.height = "500px";
+        var currentLoc=new google.maps.LatLng(lat, lon);
+        var myOptions={ center:currentLoc,
+          zoom:12,
+          mapTypeControl:false,
+          mapTypeId:google.maps.MapTypeId.ROADMAP,
+          navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
+        };
+        map=new google.maps.Map(document.getElementById("mapholder"),myOptions);
+        currentLocMarker = new google.maps.Marker({position:currentLoc,map:map,title:"Your Current Location"});
+        var markerContent = new google.maps.InfoWindow({
+          content: '<b>'+lat+', '+lon+'</b>'
+        });
+        markerContent.open(map, currentLocMarker);
+        currentLocMarker.addListener('click', function() {
+          markerContent.open(map, currentLocMarker);
+        });
+      }
+    </script>
+  </body>
+</html>
