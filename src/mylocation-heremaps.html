@@ -1,0 +1,90 @@
+<!doctype html><html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+   <meta charset="utf-8">
+   <title>Show your Location using HERE Maps</title>
+   <link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.1/mapsjs-ui.css" />
+   <style>
+     .mapholder{
+       width:100%;
+       max-width:800px;
+       height: 700px;
+     }
+   </style>
+  </head>
+  <body>
+    <div class="mapholder" id="mapholder">
+    </div>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"></script>
+    <script>
+      var targetElement = document.getElementById('mapholder');
+      var platform, defaultLayers;
+      getLocation();
+      function getLocation(){
+        navigator.geolocation.getCurrentPosition(showPosition,showError,{maximumAge: 600000, enableHighAccuracy: true,timeout : 50000});
+      }
+      function showError(error){
+        var errCont = '';
+        switch(error.code)
+          {
+          case error.PERMISSION_DENIED:
+            errCont = "The permission is denied, please allow location permission and refresh!"
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errCont = "Location information is not available in your device!"
+            break;
+          case error.TIMEOUT:
+            errCont = "The request has timed out, try again!"
+            break;
+          case error.UNKNOWN_ERROR:
+            errCont = "An unknown error, please try again!"
+            break;
+          }
+          targetElement.style.height = 'auto';
+          targetElement.innerHTML = '<div class="p-3 m-1 wairn-values" style="height:auto">'+errCont+'<br /><a href="./" class="btn btn-warning">Refresh</a><br /><br /></div>';
+      }
+      function showPosition(position){
+        var lat=position.coords.latitude;
+        var lng=position.coords.longitude;
+        var accuracy=parseInt(position.coords.accuracy);
+        platform = new H.service.Platform({
+          'apikey': 'y34_YuLAxR3E8dsyZbVx1aQbIyybTmQzudor7_py4Ys'
+        });
+        defaultLayers = platform.createDefaultLayers();
+        showinHereMap(lat, lng);
+      }
+      function showinHereMap(latitude, longitude){
+        map = new H.Map(document.getElementById('mapholder'),
+        defaultLayers.vector.normal.map,{
+        center: {lat: latitude, lng: longitude},
+        zoom: 10,
+        pixelRatio: window.devicePixelRatio || 1
+      });
+      behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
+      ui = H.ui.UI.createDefault(map, defaultLayers);
+      addInfoBubble(map);
+      geocoder = platform.getGeocodingService();
+      reverseGeocodingParameters = {
+          prox: latitude+','+longitude,
+          mode: 'retrieveAddresses',
+          maxresults: 1
+      };
+      geocoder.reverseGeocode(reverseGeocodingParameters, onSuccess, function(e) { alert(e); });
+      window.addEventListener('resize', () => map.getViewPort().resize());
+    }
+
+    function addInfoBubble(map) {
+     group = new H.map.Group();
+      map.addObject(group);
+      group.addEventListener('tap', function (evt) {
+        var bubble =  new H.ui.InfoBubble(evt.target.getGeometry(), {
+          content: evt.target.getData()
+        });
+        ui.addBubble(bubble);
+      }, true);
+    }
+    </script>
+  </body>
+</html>
